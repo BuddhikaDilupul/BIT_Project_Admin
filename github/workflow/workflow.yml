@@ -1,18 +1,59 @@
-name: 'Create envfile'
+name: Build & deploy
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  create-envfile:
-    runs-on: 'ubuntu-18.04'
-
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    
     steps:
-      - name: 'Make envfile'
-        uses: 'SpicyPizza/create-envfile@v1.3'
-        with:
-          envkey_DEBUG: false
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Install Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 13.x
+    
+    - name: Install NPM packages
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Run tests
+      run: npm run test
 
-          envkey_REACT_APP_BACKEND_URL: 'https://express-server-a.herokuapp.com'
-          envkey_CHOKIDAR_USEPOLLING: true
-          file_name: .env
-          fail_on_empty: false
+    - name: Upload production-ready build files
+      uses: actions/upload-artifact@v2
+      with:
+        name: production-files
+        path: ./build
+  
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: production-files
+        path: ./build
+
+    - name: Deploy to gh-pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        envkey_REACT_APP_BACKEND_URL: 'https://express-server-a.herokuapp.com'
+        envkey_CHOKIDAR_USEPOLLING: true
+        publish_dir: ./build
