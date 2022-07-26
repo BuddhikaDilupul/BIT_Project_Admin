@@ -1,0 +1,12 @@
+❎ change these line in 
+: package.json
+
+"homepage": "http://BuddhikaDilupul.github.io.BIT_Project_Admin" > "homepage": "http://BuddhikaDilupul.github.io/BIT_Project_Admin"
+
+❎ run :
+npm run build
+npm run deploy
+
+
+✅ Add secrets:
+https://github.com/BuddhikaDilupul/BIT_Project_Admin/settings/environments
